@@ -31,16 +31,3 @@ Currently, I am looking into what database solution would be best, as I had hope
 - After preset days → reminder: “Check if prescription is ready to collect”
 - Mark collected → resets tablets count, ready for next cycle
 
-## Tables / Sheets & Relationships
-+----------------+         +----------------+         +------------------+
-| Medications    |<------->| MedReminders    |         | Prescriptions    |
-+----------------+         +----------------+         +------------------+
-| Name           |         | Medication      |-------->| Medication       |
-| Active         |         | Time            |         | Number of Tablets|
-| Daily Doses    |---------| Taken Today     |         | Low Threshold    |
-| Prescription   |         | Next Alert      |         | Need to Order    |
-+----------------+         | Notes           |         | Ordered Date     |
-                           +----------------+         | Order Done       |
-                                                       | Collection Date  |
-                                                       | Collected        |
-                                                       +------------------+
