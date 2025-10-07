@@ -1,11 +1,46 @@
-# Sample Snack app
+# Meds Manager
 
-Open the `App.js` file to start writing some code. You can preview the changes directly on your phone or tablet by scanning the **QR code** or use the iOS or Android emulators. When you're done, click **Save** and share the link!
+I am working on a mobile app using React Native in Expo Snack to help me remember to take my medications and make sure I order my repeats on time.
 
-When you're ready to see everything that Expo provides (or if you want to use your own editor) you can **Download** your project and use it with [expo cli](https://docs.expo.dev/get-started/installation/#expo-cli)).
+Currently, I am looking into what database solution would be best, as I had hoped to use MongoDB, but it will not be possible to get that working with Expo Snack.
 
-All projects created in Snack are publicly available, so you can easily share the link to this project via link, or embed it on a web page with the `<>` button.
+## App Features / Layout
 
-If you're having problems, you can tweet to us [@expo](https://twitter.com/expo) or ask in our [forums](https://forums.expo.dev/c/expo-dev-tools/61) or [Discord](https://chat.expo.dev/).
+### Home Screen
 
-Snack is Open Source. You can find the code on the [GitHub repo](https://github.com/expo/snack).
+- List of active medications
+    - Show next dose time, status (taken/not taken), remaining tablets
+    - Quick buttons: “Mark as Taken,” “Edit Med,” “Add Med”
+
+### Medication Detail
+
+- Edit name, dosage, reminders, times
+- View reminder history
+- Manage prescription info (tablets, threshold, etc.)
+
+### Reminder Notifications
+
+- Daily reminders pop as push notifications at set times.
+- Marking as taken removes the alert until the next scheduled time.
+- If a dose is missed, the alert disappears when the next one is due.
+
+### Prescription Management
+
+- When tablets ≤ threshold → notification: “Order new prescription?”
+- Mark order as done → record ordered date
+- After preset days → reminder: “Check if prescription is ready to collect”
+- Mark collected → resets tablets count, ready for next cycle
+
+## Tables / Sheets & Relationships
++----------------+         +----------------+         +------------------+
+| Medications    |<------->| MedReminders    |         | Prescriptions    |
++----------------+         +----------------+         +------------------+
+| Name           |         | Medication      |-------->| Medication       |
+| Active         |         | Time            |         | Number of Tablets|
+| Daily Doses    |---------| Taken Today     |         | Low Threshold    |
+| Prescription   |         | Next Alert      |         | Need to Order    |
++----------------+         | Notes           |         | Ordered Date     |
+                           +----------------+         | Order Done       |
+                                                       | Collection Date  |
+                                                       | Collected        |
+                                                       +------------------+
