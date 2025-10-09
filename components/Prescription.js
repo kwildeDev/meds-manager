@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import Layout from './Layout';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { View, Text, Button, FlatList, Alert, StyleSheet } from 'react-native';
 import { loadData, saveData } from '../utils/storage';
 
 export default function Prescription() {
   const [meds, setMeds] = useState([]);
+  const navigation = useNavigation();
+  const route = useRoute();
 
   useEffect(() => {
     async function loadMeds() {
@@ -49,17 +53,17 @@ export default function Prescription() {
   });
 
   return (
-    <View>
+    <Layout navigation={navigation} route={route}>
       <FlatList
         data={meds.filter(m => m.prescription)}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           
           <View style={styles.medsCard}>
             <Text style={{ fontSize: 18 }}>{item.name}</Text>
             <Text>Tablets Remaining: {item.prescription.tabletsRemaining}</Text>
             <Text>Low Threshold: {item.prescription.lowThreshold}</Text>
-            <Text>Need to Order: {checkLowStock && !item.prescription.collectionDue ? 'Yes' : 'No'}</Text>
+            <Text>Need to Order: {checkLowStock(item) && !item.prescription.collectionDue ? 'Yes' : 'No'}</Text>
             <Text>Need to Collect: {item.prescription.collectionDue ? 'Yes' : 'No'}</Text>
             <Text>Collection Due: {item.prescription.collectionDue || '-'}</Text>
             <View style={styles.buttonRow}>
@@ -83,6 +87,6 @@ export default function Prescription() {
           </View>
         )}
       />
-    </View>
+    </Layout>
   );
 }
