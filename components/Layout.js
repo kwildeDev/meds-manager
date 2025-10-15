@@ -1,34 +1,76 @@
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   View,
-  Text,
   ScrollView,
   StyleSheet,
-  Button,
+  StatusBar,
 } from 'react-native';
+import { Appbar, SegmentedButtons, useTheme } from 'react-native-paper';
+import DownloadJSON from './DownloadJSON';
 
 export default function Layout({ children, navigation, route }) {
+  const [value, setValue] = useState('');
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingTop: StatusBar.currentHeight,
+    },
+    buttonView: {
+      padding: 10,
+      margin: 10,
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
-      <View>
-        <Text style={styles.titleText}>Meds Manager</Text>
-      </View>
+      <Appbar.Header theme={{ colors: { surface: '#6200EE', onSurface: '#FFFFFF'} }}>
+        <Appbar.BackAction 
+          onPress={() => {navigation.goBack();}} 
+        />
+        <Appbar.Content title="Meds Manager" theme={{ colors: { surface: '#6200EE', onSurface: '#FFFFFF'} }}/>
+        <Appbar.Action
+          icon="plus"
+          color={colors.onPrimary}
+          onPress={() => navigation.navigate('MedForm')}
+        />
+        <Appbar.Action
+          icon="download"
+          color={colors.onPrimary}
+          onPress={() => navigation.navigate('DownloadJSON')}
+        />
+      </Appbar.Header>
 
       <View style={styles.buttonView}>
-        <Button
-          title="Medications"
-          onPress={() => navigation.navigate('MedList')}
-          disabled={route.name === 'MedList'}
-        />
-        <Button
-          title="Prescriptions"
-          onPress={() => navigation.navigate('Prescription')}
-          disabled={route.name === 'Prescription'}
-        />
-        <Button
-          title="+"
-          onPress={() => navigation.navigate('MedForm')}
-          disabled={route.name === 'MedForm'}
+        <SegmentedButtons
+          value={value}
+          onValueChange={(newValue) => {
+            setValue(newValue);
+            if (newValue === 'medlist' && route.name !== 'MedList') {
+              navigation.navigate('MedList');
+            } else if (
+              newValue === 'prescription' &&
+              route.name !== 'Prescription'
+            ) {
+              navigation.navigate('Prescription');
+            }
+          }}
+          buttons={[
+            {
+              value: 'medlist',
+              label: 'Medications',
+              checkedColor: colors.primary,
+              icon: 'alarm',
+            },
+            {
+              value: 'prescription',
+              label: 'Prescriptions',
+              checkedColor: colors.primary,
+              icon: 'text-box-outline',
+            },
+          ]}
         />
       </View>
 
@@ -36,21 +78,3 @@ export default function Layout({ children, navigation, route }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 50,
-  },
-  layoutContainer: {},
-  buttonView: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    margin: 10,
-  },
-  titleText: {
-    alignSelf: 'center',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-});

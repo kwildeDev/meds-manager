@@ -4,46 +4,61 @@ import MedList from './components/MedList';
 import MedDetail from './components/MedDetail';
 import Prescription from './components/Prescription';
 import MedForm from './components/MedForm';
-import { Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Provider as PaperProvider } from 'react-native-paper';
+import { MD3LightTheme, MD3DarkTheme, Provider as PaperProvider, adaptNavigationTheme } from 'react-native-paper';
+import { DefaultTheme as NavigationDefaultTheme, DarkTheme as NavigationDarkTheme } from '@react-navigation/native';
 
 const Stack = createNativeStackNavigator();
 
-// Helper to wrap components and show fallback if undefined
-const checkComponent = (Comp, name) =>
-  Comp
-    ? Comp
-    : () => (
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>{name} is undefined!</Text>
-        </View>
-      );
+const { LightTheme, DarkTheme } = adaptNavigationTheme({
+  reactNavigationLight: NavigationDefaultTheme,
+  reactNavigationDark: NavigationDarkTheme,
+  materialLight: MD3LightTheme,
+  materialDark: MD3DarkTheme,
+});
+
+const CombinedDefaultTheme = {
+  ...LightTheme,
+  colors: {
+    ...LightTheme.colors,
+    primary: '#6200EE',
+    onPrimary: '#FFFFFF',
+    secondary: '#03DAC6',
+    onSecondary: '#000000',
+    secondaryVariant: "#018786",
+    primaryVariant: "#3700B3",
+    surface: '#FFFFFF',
+    error: '#C51162',
+    surfaceDisabled: '#E0E0E0',
+    primaryContainer: '#6200EE',
+    onPrimaryContainer: '#FFFFFF',
+  },
+  fonts: MD3LightTheme.fonts,
+};
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <PaperProvider>
+      <PaperProvider theme={CombinedDefaultTheme}>
         <NavigationContainer>
           <Stack.Navigator
             initialRouteName="MedList"
             screenOptions={{ headerShown: false }}>
             <Stack.Screen
               name="MedList"
-              component={checkComponent(MedList, 'MedList')}
+              component={MedList}
             />
             <Stack.Screen
               name="Prescription"
-              component={checkComponent(Prescription, 'Prescription')}
+              component={Prescription}
             />
             <Stack.Screen
               name="MedForm"
-              component={checkComponent(MedForm, 'MedForm')}
+              component={MedForm}
             />
             <Stack.Screen
               name="MedDetail"
-              component={checkComponent(MedDetail, 'MedDetail')}
+              component={MedDetail}
             />
           </Stack.Navigator>
         </NavigationContainer>

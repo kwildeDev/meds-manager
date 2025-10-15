@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Layout from './Layout';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { View, Text, Button, FlatList, Alert, StyleSheet } from 'react-native';
+import { View, FlatList, Alert, StyleSheet } from 'react-native';
+import { Card, Text, Button, Divider } from 'react-native-paper';
 import { loadData, saveData } from '../utils/storage';
 
 export default function Prescription() {
@@ -39,19 +40,6 @@ export default function Prescription() {
     return typeof(med.prescription.collectionDue) === 'string'
   };
 
-  const styles = StyleSheet.create({
-    medsCard: {
-      margin: 10,
-      padding: 10,
-      borderWidth: 1,
-    },
-    buttonRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 5,
-    },
-  });
-
   return (
     <Layout navigation={navigation} route={route}>
       <FlatList
@@ -59,34 +47,48 @@ export default function Prescription() {
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           
-          <View style={styles.medsCard}>
-            <Text style={{ fontSize: 18 }}>{item.name}</Text>
-            <Text>Tablets Remaining: {item.prescription.tabletsRemaining}</Text>
+          <Card mode="outlined" style={{ margin: 10 }}>
+            <Card.Title title={item.name} />
+            <Card.Content>
+            <Text>Tablets Remaining: {item.prescription.dosesAvailable}</Text>
             <Text>Low Threshold: {item.prescription.lowThreshold}</Text>
             <Text>Need to Order: {checkLowStock(item) && !item.prescription.collectionDue ? 'Yes' : 'No'}</Text>
             <Text>Need to Collect: {item.prescription.collectionDue ? 'Yes' : 'No'}</Text>
             <Text>Collection Due: {item.prescription.collectionDue || '-'}</Text>
-            <View style={styles.buttonRow}>
+            </Card.Content>
+            <Card.Actions style={styles.buttonRow}>
               <Button
-                title="Mark Ordered"
+                mode="contained"
                 onPress={() => {
                   updatePrescription(item.id, 'orderDone', true);
                   updatePrescription(item.id, 'collectionDue', new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]);
                 }}
                 disabled={!!item.prescription.collectionDue}
-              />
+              >
+              Mark Ordered
+              </Button>
               <Button
-                title="Mark Collected"
+                mode="contained"
                 onPress={() => {
                   updatePrescription(item.id, 'collected', true);
                   updatePrescription(item.id, 'collectionDue', new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]);
                 }}
                 disabled={!item.prescription.collectionDue}
-              />
-            </View>
-          </View>
+              >
+              Mark Collected
+              </Button>
+            
+            </Card.Actions>
+          </Card>
         )}
       />
     </Layout>
   );
 }
+
+const styles = StyleSheet.create({
+    buttonRow: {
+      justifyContent: "left",
+      marginTop: 5,
+    },
+  });

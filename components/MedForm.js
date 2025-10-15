@@ -1,29 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './Layout';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Button, TextInput, Text, HelperText } from 'react-native-paper';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { saveData, loadData } from '../utils/storage';
+import AddReminder from './AddReminder';
 
 export default function MedForm() {
   const navigation = useNavigation();
   const route = useRoute();
 
+  const methods = useForm({
+    defaultValues: {
+      name: '',
+      stock: '',
+      threshold: '',
+      reminderTimes: [{ time: null, notes: '' }],
+    },
+  });
+
+  const {
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isSubmitSuccessful },
+  } = methods;
+
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset();
+    }
+  }, [isSubmitSuccessful, reset]);
+
   const onSubmit = async (formData) => {
     const existing = await loadData('medications');
     const meds = existing || [];
+
+    const reminders = formData.reminderTimes
+      .filter((r) => r.time)
+      .map((r) => ({
+        time: r.time.toLocaleTimeString('en-UK', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }),
+        notes: r.notes,
+        takenToday: false,
+      }));
 
     const newMed = {
       id: meds.length + 1,
       name: formData.name,
       active: true,
-      reminders: [
-        {
-          time: '09:00', // static for now, can be dynamic later
-          takenToday: false,
-          notes: 'Take with meal',
-        },
-      ],
+      reminders,
       prescription: {
         dosesAvailable: parseInt(formData.stock),
         lowThreshold: parseInt(formData.threshold),
@@ -34,118 +64,101 @@ export default function MedForm() {
     await saveData('medications', updated);
 
     alert('Medication saved.');
-    
   };
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState,
-    formState: { errors, isSubmitSuccessful },
-  } = useForm({
-    defaultValues: {
-      name: '',
-      stock: '',
-      threshold: '',
-    },
-  });
-
-  const styles = StyleSheet.create({
-    input: {
-      borderWidth: 1,
-      width: '100%',
-      textAlign: 'left',
-      padding: 10,
-      borderRadius: 5,
-      marginTop: 10,
-      marginBottom: 10,
-    },
-    errorMessage: {
-      color: 'red',
-      alignSelf: 'stretch',
-      fontSize: 12,
-    },
-    buttonView: {
-      marginTop: 10,
-    },
-  });
-
-  const placeholderColour = '#888';
-
-  useEffect(() => {
-    if (formState.isSubmitSuccessful) {
-      reset()
-    }
-  });
 
   return (
     <Layout navigation={navigation} route={route}>
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Medication name"
-            placeholderTextColor={placeholderColour}
-            value={value}
-            onChangeText={onChange}
+      <FormProvider {...methods}>
+        <ScrollView style={styles.formView}>
+          <Controller
+            control={methods.control}
+            rules={{
+              required: true,
+            }}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <TextInput
+                mode="outlined"
+                label="Medication Name"
+                placeholder="Medication name"
+                value={value}
+                onChangeText={onChange}
+                error={!!errors.name}
+              />
+            )}
+            name="name"
           />
-        )}
-        name="name"
-      />
-      {errors.name && (
-        <Text style={styles.errorMessage}>This is required.</Text>
-      )}
+          <HelperText type="error" visible={!!errors.name}>
+            This is required.
+          </HelperText>
 
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Doses available"
-            placeholderTextColor={placeholderColour}
-            value={value}
-            onChangeText={onChange}
-            keyboardType="numeric"
+          <AddReminder />
+
+          <Controller
+            control={methods.control}
+            rules={{
+              required: true,
+            }}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <TextInput
+                mode="outlined"
+                label="Doses Available"
+                placeholder="Number of doses available"
+                value={value}
+                onChangeText={onChange}
+                keyboardType="numeric"
+                error={!!errors.stock}
+              />
+            )}
+            name="stock"
           />
-        )}
-        name="stock"
-      />
-      {errors.stock && (
-        <Text style={styles.errorMessage}>This is required.</Text>
-      )}
+          <HelperText type="error" visible={!!errors.stock}>
+            This is required.
+          </HelperText>
 
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Low stock threshold"
-            placeholderTextColor={placeholderColour}
-            value={value}
-            onChangeText={onChange}
-            keyboardType="numeric"
+          <Controller
+            control={control}
+            rules={{
+              required: true,
+            }}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <TextInput
+                mode="outlined"
+                label="Low Stock Threshold"
+                placeholder="Threshold needed for reorder"
+                value={value}
+                onChangeText={onChange}
+                keyboardType="numeric"
+                error={!!errors.threshold}
+              />
+            )}
+            name="threshold"
           />
-        )}
-        name="threshold"
-      />
-      {errors.threshold && (
-        <Text style={styles.errorMessage}>This is required.</Text>
-      )}
+          <HelperText type="error" visible={!!errors.threshold}>
+            This is required.
+          </HelperText>
 
-      <View style={styles.buttonView}>
-        <Button title="Save" onPress={handleSubmit(onSubmit)} />
-      </View>
+          <View>
+            <Button mode="contained" onPress={handleSubmit(onSubmit)}>
+              Save
+            </Button>
+          </View>
+        </ScrollView>
+      </FormProvider>
     </Layout>
   );
 }
+
+const styles = StyleSheet.create({
+  formView: {
+    margin: 10,
+  },
+});

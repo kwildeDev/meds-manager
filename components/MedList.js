@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import Layout from './Layout';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
-import { Card, Button, Text, FAB } from 'react-native-paper';
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
+import Layout from './Layout';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { Card, Button, Text, IconButton, useTheme } from 'react-native-paper';
 import { medications as sampleData } from '../data/sampleData';
 import { saveData, loadData } from '../utils/storage';
 
@@ -15,6 +14,17 @@ export default function MedList() {
   const [meds, setMeds] = useState([]);
   const navigation = useNavigation();
   const route = useRoute();
+  const { colors } = useTheme();
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchMeds = async () => {
+        const data = await loadData('medications');
+        setMeds(data || []);
+      };
+      fetchMeds();
+    }, [])
+  );
 
   useEffect(() => {
     async function loadMeds() {
@@ -39,73 +49,50 @@ export default function MedList() {
     await saveData('medications', updated);
   };
 
-  const downloadJSON = async () => {
-    const data = await loadData('medications');
-    if (!data) {
-      alert('No data to export.');
-      return;
-    }
-
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'medications.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  //const viewMedDetail =
-
-  const styles = StyleSheet.create({
-    medsCard: {
-      margin: 10,
-      padding: 10,
-      borderWidth: 1,
-    },
-    doseRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 10,
-      marginBottom: 10,
-    },
-  });
-
   return (
     <Layout navigation={navigation} route={route}>
       <FlatList
         data={meds}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.medsCard}>
-              <Text style={{ fontSize: 18 }}>{item.name}</Text>
-            {item.reminders.map((r, i) => (
-              <View key={i} style={styles.doseRow}>
-                <Text>
-                  {r.time} - {r.takenToday ? '✅ Taken' : '❌ Not taken'}
-                </Text>
-                {!r.takenToday && (
-                  <Button
-                    title="Mark Taken"
-                    onPress={() => markTaken(item.id, i)}
-                  />
-                )}
-              </View>
-            ))}
-            <TouchableOpacity
-              onPress={() => navigation.navigate('MedDetail', { med: item })}>
-              <Text style={{ color: '#007AFF', marginTop: 10 }}>
+          <Card mode="outlined" style={{ margin: 10 }}>
+            <Card.Title title={item.name} />
+            <Card.Content>
+              {item.reminders.map((r, i) => (
+                <View key={i} style={styles.doseRow}>
+                  <Text>
+                    {r.time} - {r.takenToday ? '✅ Taken' : '❌ Not taken'}
+                  </Text>
+                  {!r.takenToday && (
+                    <Button
+                      mode="outlined"
+                      textColor={colors.secondaryVariant}
+                      onPress={() => markTaken(item.id, i)}>
+                      Mark Taken
+                    </Button>
+                  )}
+                </View>
+              ))}
+            </Card.Content>
+            <Card.Actions>
+              <Button
+                mode="contained"
+                onPress={() => navigation.navigate('MedDetail', { med: item })}>
                 View Details
-              </Text>
-            </TouchableOpacity>
-          </View>
+              </Button>
+            </Card.Actions>
+          </Card>
         )}
       />
-      <Button title="Download Medications JSON" onPress={downloadJSON} />
     </Layout>
   );
 }
+
+const styles = StyleSheet.create({
+  doseRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+});
