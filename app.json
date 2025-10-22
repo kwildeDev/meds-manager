@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "medsapp",
-    "slug": "snack-60f4fb64-a897-4e8c-835c-2d925625f585",
+    "name": "Meds Manager",
+    "slug": "meds-manager",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,10 +19,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.kwildedev.medsmanager"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7605e17d-0bdc-43b4-844d-ab4039b8bdde"
+      }
     }
   }
 }
