@@ -6,6 +6,9 @@ import { Button, TextInput, Text, HelperText } from 'react-native-paper';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { saveData, loadData } from '../utils/storage';
 import AddReminder from './AddReminder';
+import {
+  scheduleMedicationNotification,
+} from '../utils/notifications';
 
 export default function MedForm() {
   const navigation = useNavigation();
@@ -49,11 +52,32 @@ export default function MedForm() {
         takenToday: false,
       }));
 
+    const notificationIds = [];
+    for (const reminder of formData.reminderTimes) {
+      if (reminder.time) {
+        try {
+          const hours = reminder.time.getHours();
+          const minutes = reminder.time.getMinutes();
+          const notificationId = await scheduleMedicationNotification(
+            formData.name,
+            `Time to take ${formData.name}`,
+            hours,
+            minutes
+          );
+          notificationIds.push(notificationId);
+          console.log('Scheduled notification:', notificationId);
+        } catch (error) {
+          console.error('Error scheduling notification:', error);
+        }
+      }
+    }
+
     const newMed = {
       id: meds.length + 1,
       name: formData.name,
       active: true,
       reminders,
+      notificationIds,
       prescription: {
         dosesAvailable: parseInt(formData.stock),
         lowThreshold: parseInt(formData.threshold),

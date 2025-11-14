@@ -58,7 +58,7 @@ const TimePicker = ({ value, onChange, error }) => {
           cancelLabel="Cancel"
           confirmLabel="OK"
           defaultInputType="keyboard"
-          locale="en-GB"
+          //locale="en-GB"
         />
         </PaperProvider>
       </Portal>
